@@ -17,6 +17,30 @@ function GearSetProtect:OnEnable()
     -- Track what item is on cursor for delete protection
     self.cursorItemID = nil
     
+    -- Track shift key state
+    self.shiftWasDown = false
+    
+    -- Create a frame to monitor shift key
+    self.shiftMonitor = CreateFrame("Frame")
+    self.shiftMonitor:SetScript("OnUpdate", function()
+        local shiftIsDown = IsShiftKeyDown()
+        
+        -- Detect shift release
+        if GearSetProtect.shiftWasDown and not shiftIsDown then
+            -- Shift was just released, clear all shopping tooltips
+            for i = 1, 3 do
+                local shoppingTooltip = getglobal("ShoppingTooltip" .. i)
+                if shoppingTooltip then
+                    shoppingTooltip:Hide()
+                    shoppingTooltip:ClearLines()
+                    shoppingTooltip:ClearAllPoints()
+                end
+            end
+        end
+        
+        GearSetProtect.shiftWasDown = shiftIsDown
+    end)
+    
     -- Wait for ItemRack or Outfitter to load
     self:RegisterEvent("ADDON_LOADED")
 end
@@ -321,6 +345,18 @@ function GearSetProtect:HookTooltips()
     
     -- Hook GameTooltip SetInventoryItem for equipped items
     self:SecureHook(GameTooltip, "SetInventoryItem", function(this, unit, slot)
+        -- Check if comparison tooltips are active first
+        for i = 1, 3 do
+            local shoppingTooltip = getglobal("ShoppingTooltip" .. i)
+            if shoppingTooltip and shoppingTooltip:IsVisible() then
+                -- Don't do anything if comparison mode is active
+                if GearSetProtect.extratip and GearSetProtect.extratip:IsVisible() then
+                    GearSetProtect.extratip:Hide()
+                end
+                return
+            end
+        end
+        
         local itemLink = GetInventoryItemLink(unit, slot)
         if itemLink then
             GearSetProtect:AddSetsToTooltip(GameTooltip, itemLink)
@@ -365,6 +401,22 @@ end
 
 -- Add set information to separate tooltip
 function GearSetProtect:AddSetsToTooltip(tooltip, itemLink)
+    -- Don't show if any comparison tooltips are active
+    for i = 1, 3 do
+        local shoppingTooltip = getglobal("ShoppingTooltip" .. i)
+        if shoppingTooltip and shoppingTooltip:IsVisible() then
+            -- Completely clear and hide our tooltip to avoid any interference
+            if self.extratip then
+                if self.extratip:IsVisible() then
+                    self.extratip:Hide()
+                end
+                self.extratip:ClearLines()
+                self.extratip:ClearAllPoints()
+            end
+            return
+        end
+    end
+    
     -- Always check if we should hide the tooltip first
     if not itemLink then
         if self.extratip:IsVisible() then
@@ -441,6 +493,37 @@ SlashCmdList["GEARSETPROTECT"] = function(msg)
     
     if msg == "update" or msg == "refresh" then
         GearSetProtect:UpdateProtectedItems()
+    elseif msg == "reset" then
+        -- Destroy and recreate tooltip frame
+        if GearSetProtect.extratip then
+            GearSetProtect.extratip:Hide()
+            GearSetProtect.extratip:SetScript("OnUpdate", nil)
+            GearSetProtect.extratip = nil
+        end
+        
+        -- Recreate tooltip
+        GearSetProtect.extratip = CreateFrame("GameTooltip", "GearSetProtect_Tooltip_New", UIParent, "GameTooltipTemplate")
+        GearSetProtect.extratip:SetFrameStrata("TOOLTIP")
+        
+        -- Re-add OnUpdate script
+        GearSetProtect.extratip:SetScript("OnUpdate", function()
+            if GearSetProtect.extratip and GearSetProtect.extratip:IsVisible() then
+                if not GameTooltip:IsVisible() then
+                    GearSetProtect.extratip:Hide()
+                    return
+                end
+                
+                for i = 1, 3 do
+                    local shoppingTooltip = getglobal("ShoppingTooltip" .. i)
+                    if shoppingTooltip and shoppingTooltip:IsVisible() then
+                        GearSetProtect.extratip:Hide()
+                        return
+                    end
+                end
+            end
+        end)
+        
+        DEFAULT_CHAT_FRAME:AddMessage("|cff00ff00GearSetProtect: Tooltip reset successfully|r")
     elseif msg == "count" then
         local count = 0
         for _ in pairs(GearSetProtect.ProtectedItems) do
@@ -455,6 +538,7 @@ SlashCmdList["GEARSETPROTECT"] = function(msg)
     else
         DEFAULT_CHAT_FRAME:AddMessage("|cff00ff00GearSetProtect commands:|r")
         DEFAULT_CHAT_FRAME:AddMessage("/gsp update - Refresh protected items cache")
+        DEFAULT_CHAT_FRAME:AddMessage("/gsp reset - Reset and refresh tooltips")
         DEFAULT_CHAT_FRAME:AddMessage("/gsp count - Show how many items are protected")
         DEFAULT_CHAT_FRAME:AddMessage("/gsp list - List all protected item IDs")
     end
