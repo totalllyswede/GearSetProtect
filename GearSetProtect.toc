@@ -1,0 +1,20 @@
+## Interface: 11200
+## Title: GearSet Protect
+## Notes: Prevents items in ItemRack/Outfitter sets from being sold or destroyed
+## Author: Olzon
+## Version: 1.1
+## OptionalDeps: ItemRack, Outfitter
+## SavedVariables: GearSetProtectDB
+
+# Ace2 Libraries
+AceLibrary.lua
+AceOO-2_0.lua
+AceEvent-2_0.lua
+AceAddon-2_0.lua
+AceHook-2_1.lua
+AceConsole-2_0.lua
+AceDB-2_0.lua
+AceLocale-2_2.lua
+
+# Main addon
+GearSetProtect.lua
