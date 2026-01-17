@@ -1,6 +1,6 @@
 # GearSet Protect
 
-A World of Warcraft 1.12.1 (Vanilla or Turtle WOW) addon that prevents accidental selling or destruction of items saved in your ItemRack or Outfitter gear sets.
+A World of Warcraft 1.12.1 (Vanilla or Turtle WOW) addon that prevents accidental selling or destruction of items saved in your ItemRack or Outfitter gear sets and adds tooltip to any item in a set.
 
 ## Features
 
