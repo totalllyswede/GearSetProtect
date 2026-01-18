@@ -13,6 +13,12 @@ A World of Warcraft 1.12.1 (Vanilla or Turtle WOW) addon that prevents accidenta
 
 ## Installation
 
+1. Click Clone Repository to Get Link
+2. Paste into TurtleWoW Launcher Under Addons Tab > + Add New Addon 
+3. Launcher WIll keep Addon Up to Date!
+
+OR
+
 1. Download the latest release
 2. Extract the `GearSetProtect` folder to `World of Warcraft/Interface/AddOns/`
 3. Restart WoW or type `/reload`
