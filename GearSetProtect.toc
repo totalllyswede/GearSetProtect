@@ -2,7 +2,7 @@
 ## Title: GearSet Protect
 ## Notes: Prevents items in ItemRack/Outfitter sets from being sold or destroyed
 ## Author: Olzon
-## Version: 1.2
+## Version: 1.3
 ## OptionalDeps: ItemRack, Outfitter
 ## SavedVariables: GearSetProtectDB
 

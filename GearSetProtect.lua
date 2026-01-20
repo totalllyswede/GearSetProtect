@@ -5,6 +5,9 @@ GearSetProtect = AceLibrary("AceAddon-2.0"):new("AceEvent-2.0", "AceHook-2.1")
 -- Cache of protected item IDs for performance
 GearSetProtect.ProtectedItems = {}
 
+-- Toggle for protection (tooltips always active)
+GearSetProtect.ProtectionEnabled = true
+
 function GearSetProtect:OnInitialize()
     -- Addon initialized
 end
@@ -280,7 +283,8 @@ function GearSetProtect:UseContainerItem(bag, slot, onSelf, reagentBankOpen)
             local _, _, itemID = string.find(itemLink, "item:(%d+)")
             itemID = tonumber(itemID)
             
-            if itemID and self.ProtectedItems[itemID] then
+            -- Only block if protection is enabled
+            if self.ProtectionEnabled and itemID and self.ProtectedItems[itemID] then
                 UIErrorsFrame:AddMessage("Item is protected by gear set!", 1.0, 0.1, 0.1, 1.0, UIERRORS_HOLD_TIME)
                 return
             end
@@ -319,7 +323,8 @@ end
 
 -- Hook: Prevent destroying protected items
 function GearSetProtect:DeleteCursorItem()
-    if self.cursorItemID and self.ProtectedItems[self.cursorItemID] then
+    -- Only block if protection is enabled
+    if self.ProtectionEnabled and self.cursorItemID and self.ProtectedItems[self.cursorItemID] then
         UIErrorsFrame:AddMessage("Item is protected by gear set!", 1.0, 0.1, 0.1, 1.0, UIERRORS_HOLD_TIME)
         self.cursorItemID = nil
         return
@@ -493,6 +498,14 @@ SlashCmdList["GEARSETPROTECT"] = function(msg)
     
     if msg == "update" or msg == "refresh" then
         GearSetProtect:UpdateProtectedItems()
+    elseif msg == "toggle" or msg == "lock" or msg == "unlock" then
+        GearSetProtect.ProtectionEnabled = not GearSetProtect.ProtectionEnabled
+        local status = GearSetProtect.ProtectionEnabled and "ENABLED" or "DISABLED"
+        local color = GearSetProtect.ProtectionEnabled and "00ff00" or "ff0000"
+        DEFAULT_CHAT_FRAME:AddMessage("|cff" .. color .. "GearSetProtect: Item protection " .. status .. "|r")
+        if not GearSetProtect.ProtectionEnabled then
+            DEFAULT_CHAT_FRAME:AddMessage("|cffff0000Warning: Items can now be sold/deleted! Tooltips still active.|r")
+        end
     elseif msg == "reset" then
         -- Destroy and recreate tooltip frame
         if GearSetProtect.extratip then
@@ -538,8 +551,12 @@ SlashCmdList["GEARSETPROTECT"] = function(msg)
     else
         DEFAULT_CHAT_FRAME:AddMessage("|cff00ff00GearSetProtect commands:|r")
         DEFAULT_CHAT_FRAME:AddMessage("/gsp update - Refresh protected items cache")
+        DEFAULT_CHAT_FRAME:AddMessage("/gsp toggle - Enable/disable item protection (tooltips stay active)")
         DEFAULT_CHAT_FRAME:AddMessage("/gsp reset - Reset and refresh tooltips")
         DEFAULT_CHAT_FRAME:AddMessage("/gsp count - Show how many items are protected")
         DEFAULT_CHAT_FRAME:AddMessage("/gsp list - List all protected item IDs")
+        
+        local status = GearSetProtect.ProtectionEnabled and "|cff00ff00ENABLED|r" or "|cffff0000DISABLED|r"
+        DEFAULT_CHAT_FRAME:AddMessage("Protection status: " .. status)
     end
 end
