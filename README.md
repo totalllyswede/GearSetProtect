@@ -41,6 +41,7 @@ The addon works automatically once installed. Items in your gear sets are protec
 Type `/gsp` or `/gearsetprotect` in chat to access these commands:
 
 - `/gsp` - Display this help menu with all available commands
+- `/gsp toggle` - Toggle item protection on/off (Tooltips stay active)
 - `/gsp update` (or `/gsp refresh`) - Manually refresh protected items cache
 - `/gsp count` - Show how many items are currently protected
 - `/gsp list` - Display all protected item IDs in chat
